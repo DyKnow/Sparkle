@@ -45,6 +45,8 @@
     SUFileManager *fileManager = [SUFileManager fileManagerAllowingAuthorization:YES];
     
     // Create a temporary directory for our new app that resides on our destination's volume
+    SULog(@"Will make Temprary directory for installationUrl %@", [installationURL absoluteString]);
+
     NSURL *tempNewDirectoryURL = [fileManager makeTemporaryDirectoryWithPreferredName:[installationURL.lastPathComponent.stringByDeletingPathExtension stringByAppendingString:@" (Incomplete Update)"] appropriateForDirectoryURL:installationURL.URLByDeletingLastPathComponent error:error];
     if (tempNewDirectoryURL == nil) {
         SULog(@"Failed to make new temp directory");
@@ -54,6 +56,7 @@
     // Move the new app to our temporary directory
     NSString *newURLLastPathComponent = newURL.lastPathComponent;
     NSURL *newTempURL = [tempNewDirectoryURL URLByAppendingPathComponent:newURLLastPathComponent];
+    SULog(@"Will move new app at URL %@ to Temprary directory %@", [newURL absoluteString], [newTempURL absoluteString]);
     if (![fileManager moveItemAtURL:newURL toURL:newTempURL error:error]) {
         SULog(@"Failed to move the new app from %@ to its temp directory at %@", newURL.path, newTempURL.path);
         [fileManager removeItemAtURL:tempNewDirectoryURL error:NULL];
@@ -64,6 +67,7 @@
     // We must leave moving the app to its destination as the final step in installing it, so that
     // it's not possible our new app can be left in an incomplete state at the final destination
     
+    SULog(@"Will release new app from quarantine %@", [newTempURL absoluteString]);
     NSError *quarantineError = nil;
     if (![fileManager releaseItemFromQuarantineAtRootURL:newTempURL error:&quarantineError]) {
         // Not big enough of a deal to fail the entire installation
@@ -80,6 +84,7 @@
         return NO;
     }
     
+    SULog(@"Will change owner and group of new app %@ to match ownership of old app %@", [newTempURL absoluteString], [oldURL absoluteString]);
     if (![fileManager changeOwnerAndGroupOfItemAtRootURL:newTempURL toMatchURL:oldURL error:error]) {
         // But this is big enough of a deal to fail
         SULog(@"Failed to change owner and group of new app at %@ to match old app at %@", newTempURL.path, oldURL.path);
@@ -87,6 +92,7 @@
         return NO;
     }
     
+    SULog(@"Will update last modified date of new app %@", [newTempURL absoluteString]);
     if (![fileManager updateModificationAndAccessTimeOfItemAtURL:newTempURL error:error]) {
         // Not a fatal error, but a pretty unfortunate one
         SULog(@"Failed to update modification and access time of new app at %@", newTempURL.path);
@@ -106,6 +112,7 @@
     NSString *oldDestinationNameWithPathExtension = [oldDestinationName stringByAppendingPathExtension:oldURLExtension];
     
     // Create a temporary directory for our old app that resides on its volume
+    SULog(@"Will create a temporary directory for the old app %@", [oldURL absoluteString]);
     NSURL *tempOldDirectoryURL = [fileManager makeTemporaryDirectoryWithPreferredName:oldDestinationName appropriateForDirectoryURL:oldURL.URLByDeletingLastPathComponent error:error];
     if (tempOldDirectoryURL == nil) {
         SULog(@"Failed to create temporary directory for old app at %@", oldURL.path);
@@ -115,38 +122,48 @@
     
     // Move the old app to the temporary directory
     NSURL *oldTempURL = [tempOldDirectoryURL URLByAppendingPathComponent:oldDestinationNameWithPathExtension];
+    SULog(@"Will move the old app %@ to the temp directory %@", [oldURL absoluteString], [oldTempURL absoluteString]);
     if (![fileManager moveItemAtURL:oldURL toURL:oldTempURL error:error]) {
         SULog(@"Failed to move the old app at %@ to a temporary location at %@", oldURL.path, oldTempURL.path);
         
         // Just forget about our updated app on failure
+        SULog(@"Will remove new temp directory %@", [tempNewDirectoryURL absoluteString]);
         [fileManager removeItemAtURL:tempNewDirectoryURL error:NULL];
+        SULog(@"Will remove old temp directory %@", [tempOldDirectoryURL absoluteString]);
         [fileManager removeItemAtURL:tempOldDirectoryURL error:NULL];
         
         return NO;
     }
     
     // Move the new app to its final destination
+    SULog(@"Will move the new app from temp directory %@ to install location %@", [newTempURL absoluteString], [installationURL absoluteString]);
     if (![fileManager moveItemAtURL:newTempURL toURL:installationURL error:error]) {
         SULog(@"Failed to move new app at %@ to final destination %@", newTempURL.path, installationURL.path);
         
         // Forget about our updated app on failure
+        SULog(@"Will remove new temp directory %@", [tempNewDirectoryURL absoluteString]);
         [fileManager removeItemAtURL:tempNewDirectoryURL error:NULL];
         
         // Attempt to restore our old app back the way it was on failure
+        SULog(@"Will restore old app %@ to install location %@", [oldTempURL absoluteString], [oldURL absoluteString]);
         [fileManager moveItemAtURL:oldTempURL toURL:oldURL error:NULL];
+        SULog(@"Will remove old temp directory %@", [tempOldDirectoryURL absoluteString]);
         [fileManager removeItemAtURL:tempOldDirectoryURL error:NULL];
         
         return NO;
     }
     
     // Cleanup: move the old app to the trash
+    SULog(@"Will move the old app from temp directory %@ to trash", [oldTempURL absoluteString]);
     NSError *trashError = nil;
     if (![fileManager moveItemAtURLToTrash:oldTempURL error:&trashError]) {
         SULog(@"Failed to move %@ to trash with error %@", oldTempURL, trashError);
     }
     
+    SULog(@"Will remove old temp directory %@", [tempOldDirectoryURL absoluteString]);
     [fileManager removeItemAtURL:tempOldDirectoryURL error:NULL];
     
+    SULog(@"Will remove new temp directory %@", [tempNewDirectoryURL absoluteString]);
     [fileManager removeItemAtURL:tempNewDirectoryURL error:NULL];
     
     return YES;

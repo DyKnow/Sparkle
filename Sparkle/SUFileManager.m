@@ -12,6 +12,7 @@
 #include <sys/xattr.h>
 #include <sys/errno.h>
 #include <sys/time.h>
+#import "SULog.h"
 
 static char SUAppleQuarantineIdentifier[] = "com.apple.quarantine";
 
@@ -201,6 +202,8 @@ static BOOL SUMakeRefFromURL(NSURL *url, FSRef *ref, NSError **error) {
         return NO;
     }
 
+    SULog(@"Will _acquireAuthorizationWithError for _removeXAttrWithAuthentication");
+    
     if (![self _acquireAuthorizationWithError:error]) {
         return NO;
     }
@@ -388,6 +391,8 @@ static BOOL SUMakeRefFromURL(NSURL *url, FSRef *ref, NSError **error) {
         return NO;
     }
 
+    SULog(@"Will _acquireAuthorizationWithError for copyItemAtURL");
+    
     if (![self _acquireAuthorizationWithError:error]) {
         return NO;
     }
@@ -500,6 +505,8 @@ static BOOL SUMakeRefFromURL(NSURL *url, FSRef *ref, NSError **error) {
         }
         return NO;
     }
+    
+    SULog(@"Will _acquireAuthorizationWithError for moveItemAtURL");
 
     if (![self _acquireAuthorizationWithError:error]) {
         return NO;
@@ -658,6 +665,8 @@ static BOOL SUMakeRefFromURL(NSURL *url, FSRef *ref, NSError **error) {
     if (written < 0 || written >= 100) {
         return NO; // No custom error, because it's too unlikely to ever happen
     }
+    
+    SULog(@"Will _acquireAuthorizationWithError for changeOwnerAndGroupOfItemAtRootURL");
 
     if (![self _acquireAuthorizationWithError:error]) {
         return NO;
@@ -705,6 +714,8 @@ static BOOL SUMakeRefFromURL(NSURL *url, FSRef *ref, NSError **error) {
         }
         return NO;
     }
+    
+    SULog(@"Will _acquireAuthorizationWithError for updateModificationAndAccessTimeOfItemAtURL");
 
     if (![self _acquireAuthorizationWithError:error]) {
         return NO;
@@ -759,6 +770,8 @@ static BOOL SUMakeRefFromURL(NSURL *url, FSRef *ref, NSError **error) {
         return NO;
     }
 
+    SULog(@"Will _acquireAuthorizationWithError for _makeDirectoryAtURL");
+    
     if (![self _acquireAuthorizationWithError:error]) {
         return NO;
     }
@@ -812,6 +825,8 @@ static BOOL SUMakeRefFromURL(NSURL *url, FSRef *ref, NSError **error) {
         }
         return NO;
     }
+    
+    SULog(@"Will _acquireAuthorizationWithError for removeItemAtURL");
 
     if (![self _acquireAuthorizationWithError:error]) {
         return NO;
