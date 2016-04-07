@@ -897,11 +897,11 @@ static BOOL SUMakeRefFromURL(NSURL *url, FSRef *ref, NSError **error) {
         return NO;
     }
 
-    if (![self changeOwnerAndGroupOfItemAtRootURL:tempItemURL toMatchURL:trashURL error:error]) {
+    /*if (![self changeOwnerAndGroupOfItemAtRootURL:tempItemURL toMatchURL:trashURL error:error]) {
         // Removing the item inside of the temp directory is better than trying to move the item to the trash with incorrect ownership
         [self removeItemAtURL:tempDirectory error:NULL];
         return NO;
-    }
+    }*/
 
     // If we get here, we should be able to trash the item normally without authentication
 
