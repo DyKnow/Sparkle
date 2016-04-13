@@ -627,6 +627,8 @@ static BOOL SUMakeRefFromURL(NSURL *url, FSRef *ref, NSError **error) {
         // Assume they're the same even if we don't check every file recursively
         // Speeds up the common case
         return YES;
+    } else {
+        SULog(@"Owner and group not equal targetOwner: %@ and targetGroup %@ ownerId: %@ groupId: %@", targetOwnerID, targetGroupID, ownerID, groupID);
     }
 
     BOOL needsAuth = NO;
